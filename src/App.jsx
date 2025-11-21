@@ -4,11 +4,11 @@ import { MuseumHall } from "./components/MuseumHall"
 import { Suspense, useState } from "react"
 import { AutoCamera } from "./components/AutoCamera"
 import { CameraTransition } from "./components/CameraTransition"
-import { PhotoSet } from "./components/PhotoSet"
 import { GalleryScene } from "./components/GalleryScene"
+import { EaselLanding } from "./components/EaselLanding"
 import "./index.css"
 
-// 📸 Usa tus propias imágenes reales (ya optimizadas)
+// 📸 Imágenes de galería
 const IMAGES = [
   "https://plus.unsplash.com/premium_photo-1710965560034-778eedc929ff?q=70&w=1600&fm=webp&auto=format",
   "https://plus.unsplash.com/premium_photo-1710965560034-778eedc929ff?q=70&w=1600&fm=webp&auto=format",
@@ -26,19 +26,12 @@ export default function App() {
     if (next === "gallery-ready") setActiveScene("gallery-ready")
   }
 
-  // 🎬 Cuando se pulsa una opción del set
-  const handleSelect = (option) => {
-    if (option === "Galería") {
-      setActiveScene("transition")
-    }
-  }
-
   return (
     <>
       {/* 🕰️ Pantalla de carga */}
       {!sceneReady && (
         <div className="loading-overlay">
-          Abriendo las puertas del museo...
+          Abriendo las puertas de mi web...
         </div>
       )}
 
@@ -51,15 +44,19 @@ export default function App() {
         <color attach="background" args={["#191920"]} />
         <fog attach="fog" args={["#191920", 0, 15]} />
 
-        {/* Luces base */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+        {/* 💡 Luces base */}
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[5, 5, 5]} intensity={2} castShadow />
 
         {/* 🔄 Escenas bajo Suspense */}
-        <Suspense fallback={<Html center>Cargando escena...</Html>}>
-
-          {/* 🏛️ Museo siempre visible */}
+        <Suspense fallback={<Html center></Html>}>
+          {/* 🏛️ Museo */}
           <MuseumHall onLoaded={() => setSceneReady(true)} />
+
+          {/* 🖋️ Caballete (EaselLanding) visible solo en el hall */}
+          {sceneReady && activeScene === "museum" && (
+            <EaselLanding position={[0, -1.5, 0]} />
+          )}
 
           {/* 🚀 Transición de cámara */}
           {activeScene === "transition" && (
@@ -69,22 +66,17 @@ export default function App() {
             />
           )}
 
-          {/* 🖼️ Galería dentro del museo */}
+          {/* 🖼️ Galería */}
           {activeScene === "gallery-ready" && (
             <GalleryScene images={IMAGES} insideMuseum />
           )}
 
-          {/* 🎥 Cámara automática solo en la intro */}
+          {/* 🎥 Cámara automática */}
           {activeScene === "museum" && <AutoCamera sceneReady={sceneReady} />}
 
           <Environment preset="city" />
         </Suspense>
       </Canvas>
-
-      {/* 🎬 Set fotográfico con menú (solo al inicio) */}
-      {sceneReady && activeScene === "museum" && (
-        <PhotoSet onSelect={handleSelect} />
-      )}
     </>
   )
 }

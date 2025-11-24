@@ -6,6 +6,8 @@ import { AutoCamera } from "./components/AutoCamera"
 import { CameraTransition } from "./components/CameraTransition"
 import { GalleryScene } from "./components/GalleryScene"
 import { EaselLanding } from "./components/EaselLanding"
+import LoadingOverlay from "./components/LoadingOverlay"
+
 import "./index.css"
 
 // 📸 Imágenes de galería
@@ -20,20 +22,34 @@ const IMAGES = [
 export default function App() {
   const [sceneReady, setSceneReady] = useState(false)
   const [activeScene, setActiveScene] = useState("museum")
+  const [showOverlay, setShowOverlay] = useState(true)
+  const [flash, setFlash] = useState(false)
 
-  // 🚀 Maneja el cambio de escena al terminar la transición
+  // 🚀 Cuando termina la transición
   const handleSceneChange = (next) => {
     if (next === "gallery-ready") setActiveScene("gallery-ready")
+    if (next === "museum") setActiveScene("museum")
   }
 
   return (
     <>
-      {/* 🕰️ Pantalla de carga */}
-      {!sceneReady && (
-        <div className="loading-overlay">
-          Abriendo las puertas de mi web...
-        </div>
-      )}
+      {/* 🕰️ Intro de puerta */}
+      <LoadingOverlay
+        loading={!sceneReady}
+        onFinish={() => {
+          setShowOverlay(false)
+
+          // ✨ Flash blanco suave
+          setFlash(true)
+          setTimeout(() => setFlash(false), 350)
+
+          // Volvemos al museo para ver el caballete
+          setActiveScene("museum")
+        }}
+      />
+
+      {/* ✨ Flash blanco encima del canvas */}
+      {flash && <div className="screen-flash"></div>}
 
       {/* 🎥 Canvas principal */}
       <Canvas
@@ -44,21 +60,24 @@ export default function App() {
         <color attach="background" args={["#191920"]} />
         <fog attach="fog" args={["#191920", 0, 15]} />
 
-        {/* 💡 Luces base */}
+        {/* 💡 Luces */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 5, 5]} intensity={2} castShadow />
 
-        {/* 🔄 Escenas bajo Suspense */}
         <Suspense fallback={<Html center></Html>}>
+
           {/* 🏛️ Museo */}
           <MuseumHall onLoaded={() => setSceneReady(true)} />
 
-          {/* 🖋️ Caballete (EaselLanding) visible solo en el hall */}
-          {sceneReady && activeScene === "museum" && (
-            <EaselLanding position={[0, -1.5, 0]} />
+          {/* 🖼️ Landing en el caballete */}
+          {sceneReady && !showOverlay && activeScene === "museum" && (
+            <EaselLanding
+              position={[0, -1.5, 0]}
+              goToGallery={() => setActiveScene("transition")}
+            />
           )}
 
-          {/* 🚀 Transición de cámara */}
+          {/* 🚀 Transición hacia galería */}
           {activeScene === "transition" && (
             <CameraTransition
               activeScene="gallery"
@@ -66,13 +85,15 @@ export default function App() {
             />
           )}
 
-          {/* 🖼️ Galería */}
+          {/* 🎨 Galería final */}
           {activeScene === "gallery-ready" && (
             <GalleryScene images={IMAGES} insideMuseum />
           )}
 
-          {/* 🎥 Cámara automática */}
-          {activeScene === "museum" && <AutoCamera sceneReady={sceneReady} />}
+          {/* 🎥 AutoCamera SOLO cuando overlay no está */}
+          {activeScene === "museum" && !showOverlay && (
+            <AutoCamera sceneReady={sceneReady} />
+          )}
 
           <Environment preset="city" />
         </Suspense>

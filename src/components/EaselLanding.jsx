@@ -1,7 +1,7 @@
 import { useGLTF, Html } from "@react-three/drei"
 import { useRef, useState } from "react"
 
-export function EaselLanding(props) {
+export function EaselLanding({ goToGallery, ...props }) {
   const ref = useRef()
   const { scene } = useGLTF("/models/easel.glb")
   const [menuOpen, setMenuOpen] = useState(false)
@@ -24,11 +24,12 @@ export function EaselLanding(props) {
                 Somada <span>fotografía</span>
               </h1>
 
+              {/* MENÚ */}
               <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-                <a href="#">Fashion</a>
-                <a href="#">Beauty</a>
-                <a href="#">Brand</a>
-                <a href="#">Portrait</a>
+                <button onClick={goToGallery}>Fashion</button>
+                <button onClick={goToGallery}>Beauty</button>
+                <button onClick={goToGallery}>Brand</button>
+                <button onClick={goToGallery}>Portrait</button>
               </nav>
 
               <div
